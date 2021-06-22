@@ -52,6 +52,50 @@ class UI {
     }
 }
 
+class Store {
+    static getBooks() {
+        let books;
+
+        if(localStorage.getItem('books') === null) {
+            books = [];
+        } else {
+            books = JSON.parse(localStorage.getItem('books'));
+        }
+
+        return books;
+    }
+
+    static displayBooks() {
+        const books = Store.getBooks();
+        const ui = new UI();
+
+        books.forEach(function(book) {
+            ui.addBookToList(book);
+        });
+    }
+
+    static addBook(book) {
+        const books = Store.getBooks();
+
+        books.push(book);
+
+        localStorage.setItem('books', JSON.stringify(books));
+    }
+
+    static removeBook(isbn) {
+        const books = Store.getBooks();
+
+        books.forEach(function(book, index) {
+            if(book.isbn === isbn) {
+                books.splice(index, 1);
+            }
+        });
+
+        localStorage.setItem('books', JSON.stringify(books));
+    }
+}
+
+document.addEventListener('DOMContentLoaded', Store.displayBooks);
 
 document.querySelector('#book-form').addEventListener('submit', function(e) {
     const title = document.querySelector('#title'),
@@ -67,6 +111,8 @@ document.querySelector('#book-form').addEventListener('submit', function(e) {
         ui.showAlert('Please fill in all fields', 'error');
     } else {
         ui.addBookToList(book);
+
+        Store.addBook(book);
         
         ui.clearFields();
 
@@ -81,7 +127,9 @@ document.querySelector('#book-list').addEventListener('click', function(e) {
 
     ui.deleteBook(e.target);
 
+    Store.removeBook(e.target.parentElement.previousElementSibling.textContent);
+
     ui.showAlert('Book Removed!', 'success');
 
     e.preventDefault();
-})
+});
